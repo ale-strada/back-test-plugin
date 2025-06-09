@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import admin from "firebase-admin";
 
-const serviceAccount: any = await import("./serviceAccount", {
+const serviceAccount: any = await import("./firebase-service-account.json", {
 	assert: { type: "json" },
 });
 
