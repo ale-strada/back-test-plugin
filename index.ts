@@ -1,20 +1,23 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { promises as fs } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import admin from "firebase-admin";
 
-// Para simular __dirname en ESModules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const serviceAccount: any = await import("./firebase-service-account.json", {
+	assert: { type: "json" },
+});
+
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount.default),
+});
+
+const db = admin.firestore();
 
 const app = express();
-app.use(cors()); // <-- Agrega esta línea
+app.use(cors());
 app.use(express.json());
 const PORT = 3000;
-const STATE_PATH = path.join(__dirname, "state.json");
 
-app.use(express.json());
+const STATE_DOC = "appState/state"; // Colección: appState, Documento: state
 
 // Tipos
 type AppState = {
@@ -23,18 +26,22 @@ type AppState = {
 	user: string;
 };
 
-// Helpers
+// Firestore: leer estado
 const readState = async (): Promise<AppState> => {
-	const data = await fs.readFile(STATE_PATH, "utf-8");
-	return JSON.parse(data);
+	const doc = await db.doc(STATE_DOC).get();
+	if (!doc.exists) {
+		throw new Error("No state found");
+	}
+	return doc.data() as AppState;
 };
 
+// Firestore: escribir estado
 const writeState = async (state: AppState): Promise<void> => {
-	await fs.writeFile(STATE_PATH, JSON.stringify(state, null, 3));
+	await db.doc(STATE_DOC).set(state);
 };
 
-// ngrok http http://localhost:3000
 // Endpoints
+
 app.get("/state", async (_req: Request, res: Response) => {
 	console.log("GET /state");
 
@@ -42,9 +49,10 @@ app.get("/state", async (_req: Request, res: Response) => {
 		const state = await readState();
 		res.json(state);
 	} catch (error) {
-		res.status(500).json({ error: "Error al leer el estado." });
+		res.status(500).json({ error: "Error al leer el estado desde Firestore." });
 	}
 });
+
 app.post("/state", async (req: Request, res: Response) => {
 	console.log("POST /state body:", req.body);
 	try {
@@ -53,7 +61,7 @@ app.post("/state", async (req: Request, res: Response) => {
 		await writeState(newState);
 		res.json(newState);
 	} catch (error) {
-		res.status(500).json({ error: "Error al guardar el estado." });
+		res.status(500).json({ error: "Error al guardar el estado en Firestore." });
 	}
 });
 
@@ -64,7 +72,9 @@ app.patch("/state", async (req: Request, res: Response) => {
 		await writeState(updatedState);
 		res.json(updatedState);
 	} catch (error) {
-		res.status(500).json({ error: "Error al actualizar el estado." });
+		res
+			.status(500)
+			.json({ error: "Error al actualizar el estado en Firestore." });
 	}
 });
 
