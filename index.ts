@@ -5,6 +5,7 @@ import admin from "firebase-admin";
 const serviceAccount: any = await import("./firebase-service-account.json", {
 	assert: { type: "json" },
 });
+console.log(serviceAccount);
 
 admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount.default),
@@ -49,6 +50,7 @@ app.get("/state", async (_req: Request, res: Response) => {
 		const state = await readState();
 		res.json(state);
 	} catch (error) {
+		console.log(error, "error Firestore");
 		res.status(500).json({ error: "Error al leer el estado desde Firestore." });
 	}
 });
