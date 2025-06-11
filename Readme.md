@@ -9,3 +9,7 @@ https://back-test-plugin.onrender.com
 # Repo github
 
 https://github.com/ale-strada/back-test-plugin
+
+# firestore
+
+https://console.firebase.google.com/u/0/project/test--plugin/settings/serviceaccounts/adminsdk?hl=es-419

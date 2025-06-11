@@ -1,24 +1,15 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import admin from "firebase-admin";
+import { firestoreDB } from "./firestore.js";
 
-const serviceAccount: any = await import("./firebase-service-account.json", {
-	assert: { type: "json" },
-});
-console.log(serviceAccount);
-
-admin.initializeApp({
-	credential: admin.credential.cert(serviceAccount.default),
-});
-
-const db = admin.firestore();
+const db = firestoreDB;
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 const PORT = 3000;
 
-const STATE_DOC = "appState/state"; // Colección: appState, Documento: state
+const STATE_DOC = "appState/state";
 
 // Tipos
 type AppState = {

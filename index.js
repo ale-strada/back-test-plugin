@@ -1,19 +1,12 @@
 import express from "express";
 import cors from "cors";
-import admin from "firebase-admin";
-const serviceAccount = await import("./firebase-service-account.json", {
-    assert: { type: "json" },
-});
-console.log(serviceAccount);
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount.default),
-});
-const db = admin.firestore();
+import { firestoreDB } from "./firestore.js";
+const db = firestoreDB;
 const app = express();
 app.use(cors());
 app.use(express.json());
 const PORT = 3000;
-const STATE_DOC = "appState/state"; // Colección: appState, Documento: state
+const STATE_DOC = "appState/state";
 // Firestore: leer estado
 const readState = async () => {
     const doc = await db.doc(STATE_DOC).get();
